@@ -2,7 +2,11 @@
   "name": "@nx-angular-nestjs/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "start": "nx run-many --parallel -t serve",
+    "start:client": "nx serve client-app",
+    "start:backend": "nx serve backend-app"
+  },
   "private": true,
   "dependencies": {
     "@angular/animations": "~17.0.0",
