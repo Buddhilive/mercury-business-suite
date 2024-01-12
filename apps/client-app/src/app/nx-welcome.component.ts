@@ -11,13 +11,14 @@ interface iTestApi {
   standalone: true,
   imports: [CommonModule, HttpClientModule],
   template: `
-    <div>{{message}}</div>
+    <div>{{message}} - {{blog}}</div>
   `,
   styles: [],
   encapsulation: ViewEncapsulation.None
 })
 export class NxWelcomeComponent implements OnInit {
   message!: string;
+  blog!: string;
 
   constructor(private httpClient: HttpClient) {}
 
@@ -25,6 +26,11 @@ export class NxWelcomeComponent implements OnInit {
     this.httpClient.get('/api/').subscribe((res) => {
       const response = res as iTestApi;
       this.message = response?.message;
+    });
+
+    this.httpClient.get('/api/blog/').subscribe((res) => {
+      const response = res as iTestApi;
+      this.blog = response?.message;
     });
   }
 }
