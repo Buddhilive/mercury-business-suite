@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { BlogController } from './blog/blog.controller';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { BlogController } from './blog/blog.controller';
       url: process.env.DATABASE_URL,
       autoLoadEntities: true,
       synchronize: true,
-    })
+    }),
+    UserModule,
   ],
   controllers: [AppController, BlogController],
   providers: [AppService],
