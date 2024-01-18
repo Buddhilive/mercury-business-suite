@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -20,9 +20,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         database: soliasConfigService.get('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true,
-      })
+      }),
     }),
+    UserModule,
   ],
   controllers: [AppController],
 })
-export class AppModule { }
+export class AppModule {}
