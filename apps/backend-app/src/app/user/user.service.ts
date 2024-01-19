@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Observable, from } from 'rxjs';
@@ -22,11 +22,11 @@ export class UserService {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  update(id: number, updateUserDto: UpdateUserDto): Observable<UpdateResult> {
+    return from(this.userRepo.update(id, updateUserDto));
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  remove(id: number): Observable<DeleteResult> {
+    return from(this.userRepo.delete(id));
   }
 }
