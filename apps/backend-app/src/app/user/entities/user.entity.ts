@@ -1,7 +1,8 @@
 import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-
+import { Exclude, classToPlain, } from 'class-transformer';
 @Entity({ name: 'ngnest_user' })
 export class UserEntity {
+    @Exclude({ toPlainOnly: true })
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -14,10 +15,11 @@ export class UserEntity {
     @Column({ nullable: true })
     last_name: string;
 
+    @Exclude({ toPlainOnly: true })
     @Column({ unique: true, nullable: true })
     email: string;
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, select: false })
     password: string;
 
     @Column({ type: 'text', nullable: true })
@@ -26,5 +28,9 @@ export class UserEntity {
     @BeforeInsert()
     emailToLowercase() {
         this.email = this.email.toLowerCase();
+    }
+
+    toJSON() {
+        return classToPlain(this);
     }
 }

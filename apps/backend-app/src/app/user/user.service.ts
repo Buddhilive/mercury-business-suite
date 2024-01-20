@@ -5,6 +5,7 @@ import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Observable, from } from 'rxjs';
+import { SearchUserDto } from './dto/search-user.dto';
 
 @Injectable()
 export class UserService {
@@ -14,12 +15,12 @@ export class UserService {
     return from(this.userRepo.save(createUserDto));
   }
 
-  findAll() {
-    return `This action returns all user`;
+  findAll(): Observable<SearchUserDto[]> {
+    return from(this.userRepo.find());
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findOne(id: number): Observable<SearchUserDto> {
+    return from(this.userRepo.findOne({ where: {id}}));
   }
 
   update(id: number, updateUserDto: UpdateUserDto): Observable<UpdateResult> {
