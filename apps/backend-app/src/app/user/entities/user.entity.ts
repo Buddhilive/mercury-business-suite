@@ -16,10 +16,10 @@ export class UserEntity {
     last_name: string;
 
     @Exclude({ toPlainOnly: true })
-    @Column({ unique: true, nullable: true })
+    @Column({ unique: true })
     email: string;
 
-    @Column({ nullable: true, select: false })
+    @Column()
     password: string;
 
     @Column({ type: 'text', nullable: true })
