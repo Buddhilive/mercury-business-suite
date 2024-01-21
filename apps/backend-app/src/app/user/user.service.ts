@@ -1,96 +1,46 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../shared/schema/user.entity';
-import { Repository } from 'typeorm';
-import { User } from '../shared/interfaces/user.interface';
-import { Observable, catchError, from, map, switchMap, throwError } from 'rxjs';
-import { AuthService } from '../auth/auth.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { DeleteResult, UpdateResult } from 'typeorm';
+import { Observable, catchError, from } from 'rxjs';
+import { SearchUserDto } from './dto/search-user.dto';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UserService {
-    constructor(
-        @InjectRepository(UserEntity) private readonly userRepo: Repository<UserEntity>,
-        private authService: AuthService
-    ) { }
+  constructor(
+    private readonly userRepo: UsersRepository
+  ) { }
 
-    create(user: User): Observable<User> {
-        return this.authService.hashPassword(user.password).pipe(
-            switchMap((passwordHash: string) => {
-                const newUser = new UserEntity();
-                newUser.name = user.name;
-                newUser.username = user.username;
-                newUser.email = user.email;
-                newUser.password = passwordHash;
-                return from(this.userRepo.save(newUser)).pipe(
-                    map((user: User) => {
-                        const newUserObj = {...user};
-                        delete newUserObj.password
-                        return newUserObj;
-                    }),
-                    catchError(err => throwError(err))
-                )
-            })
-        );
-    }
+  async create(createUserDto: CreateUserDto): Promise<void> {
+    await this.userRepo.createUser(createUserDto);
+  }
 
-    findOne(id: number): Observable<User> {
-        return from(this.userRepo.findOne({ where: { id } })).pipe(
-            map((user: User) => {
-                const newUser = { ...user };
-                delete newUser.password;
-                return newUser;
-            })
-        );
-    }
+  findAll(): Observable<SearchUserDto[]> {
+    return from(this.userRepo.find());
+  }
 
-    findAll(): Observable<User[]> {
-        return from(this.userRepo.find()).pipe(
-            map((users: User[]) => {
-                users.forEach((item: User) => delete item.password);
-                return users;
-            })
-        );
-    }
+  findOne(id: number): Observable<SearchUserDto> {
+    return from(this.userRepo.findOne({ where: { id } })).pipe(
+      catchError((err) => {
+        throw new NotFoundException(err);
+      })
+    );
+  }
 
-    deleteOne(id: number): Observable<unknown> {
-        return from(this.userRepo.delete(id));
-    }
+  update(id: number, updateUserDto: UpdateUserDto): Observable<UpdateResult> {
+    return from(this.userRepo.update(id, updateUserDto)).pipe(
+      catchError((err) => {
+        throw new NotFoundException(err);
+      })
+    );
+  }
 
-    updateOne(id: number, user: User): Observable<unknown> {
-        delete user.email;
-        delete user.password;
-        return from(this.userRepo.update(id, user));
-    }
-
-    login(user: User): Observable<string> {
-        return this.validateUser(user.email, user.password).pipe(
-            switchMap((user: User) => {
-                if(user) {
-                    return this.authService.generateJwt(user).pipe((jwt) => jwt);
-                } else {
-                    return "Email or Password incorrect!";
-                }
-            })
-        );
-    }
-
-    validateUser(email: string, password: string): Observable<User> {
-        return this.findByEmail(email).pipe(
-            switchMap((user: User) => this.authService.comparePasswords(password, user.password).pipe(
-                map((isAuthorized: boolean) => {
-                    if (isAuthorized) {
-                        const newUser = { ... user };
-                        delete newUser.password;
-                        return newUser;
-                    } else {
-                        throw Error;
-                    }
-                })
-            ))
-        );
-    }
-
-    findByEmail(email: string): Observable<User> {
-        return from(this.userRepo.findOne({where: {email}}));
-    }
+  remove(id: number): Observable<DeleteResult> {
+    return from(this.userRepo.delete(id)).pipe(
+      catchError((err) => {
+        throw new NotFoundException(err);
+      })
+    );
+  }
 }

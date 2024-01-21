@@ -1,22 +1,33 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { AuthRepository } from './auth.repository';
+import { CredentialsDto } from './dto/credentials.dto';
+import { LoginCredentialsDto } from './dto/login-credentials.dto';
+import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { Observable, from, of } from 'rxjs';
-import { User } from '../shared/interfaces/user.interface';
-import bcrypt from "bcrypt";
+import { JwtPayloadObject } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
-    constructor(private readonly jwtService: JwtService) {}
+    constructor(
+        private readonly authRepo: AuthRepository,
+        private jwtService: JwtService
+    ) { }
 
-    generateJwt(user: User): Observable<string> {
-        return from(this.jwtService.signAsync({user}));
+    async signUp(credentialsDto: CredentialsDto): Promise<void> {
+        await this.authRepo.createUser(credentialsDto);
     }
 
-    hashPassword(password: string): Observable<string> {
-        return from<string>(bcrypt.hash(password, 12));
-    }
+    async signIn(credentialsDto: LoginCredentialsDto): Promise<{ accessToken }> {
+        const { username, password } = credentialsDto;
 
-    comparePasswords(newPassword: string, passwordHash: string): Observable<unknown | boolean> {
-        return of<unknown | boolean>(bcrypt.compare(newPassword, passwordHash));
+        const user = await this.authRepo.findOne({ where: { username } });
+
+        if (user && (await bcrypt.compare(password, user.password))) {
+            const jwtPayload: JwtPayloadObject = { username };
+            const jwtAccessToken = this.jwtService.sign(jwtPayload);
+            return { accessToken: jwtAccessToken };
+        } else {
+            throw new UnauthorizedException('Username or Password is incorrect.');
+        }
     }
 }
