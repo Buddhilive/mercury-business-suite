@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { CreateDocDto } from './dto/create-doc.dto';
 import { UpdateDocDto } from './dto/update-doc.dto';
+import { DocumentRepository } from './docs.repository';
+import { DocEntity } from './entities/doc.entity';
+import { UpdateResult } from 'typeorm';
 
 @Injectable()
 export class DocsService {
-  create(createDocDto: CreateDocDto) {
-    return 'This action adds a new doc';
+
+  constructor(private docsRepo: DocumentRepository) {}
+
+  async create(createDocDto: CreateDocDto): Promise<DocEntity> {
+    return await this.docsRepo.createDoc(createDocDto);
   }
 
   findAll() {
@@ -16,8 +22,8 @@ export class DocsService {
     return `This action returns a #${id} doc`;
   }
 
-  update(id: number, updateDocDto: UpdateDocDto) {
-    return `This action updates a #${id} doc`;
+  async update(id: number, updateDocDto: UpdateDocDto): Promise<UpdateResult> {
+    return await this.docsRepo.update(id, updateDocDto);
   }
 
   remove(id: number) {
