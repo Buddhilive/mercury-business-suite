@@ -5,7 +5,9 @@ export class AppController {
   constructor() {}
 
   @Get()
-  getData(): string {
-    return 'Welcome to NestJS';
+  getData() {
+    return {
+      message: 'Welcome to NestJS'
+    };
   }
 }
